@@ -26,10 +26,13 @@ st.title("⚡ AI Code Review Assistant")
 st.markdown("*Targeted pedagogical feedback powered by Hugging Face open-source LLMs.*")
 st.divider()
 
-# Sidebar Setup
-st.sidebar.header("🔑 Configuration")
-hf_token = st.sidebar.text_input("Hugging Face Access Token", type="password", help="Enter your 'hf_...' token.")
+# Safely load the token from .streamlit/secrets.toml
+try:
+    hf_token = st.secrets["HUGGINGFACE_TOKEN"]
+except Exception:
+    hf_token = None
 
+# Sidebar Setup
 st.sidebar.header("🎯 Review Parameters")
 language = st.sidebar.selectbox("Programming Language", ["Python", "Java", "C++", "JavaScript", "SQL", "C#"])
 focus_area = st.sidebar.selectbox("Optimization Focus", ["Time Complexity", "Memory Usage", "Readability & Clean Code", "General Review"])
@@ -53,10 +56,10 @@ with col2:
         if not user_code.strip():
             st.error("⚠️ **Validation Error:** Please paste or type code before running the review.")
         elif not hf_token:
-            st.error("⚠️ **Access Token Missing:** Please provide your Hugging Face token in the sidebar.")
+            st.error("⚠️ **Access Token Missing:** Could not find `HUGGINGFACE_TOKEN` in `.streamlit/secrets.toml`.")
         else:
             try:
-                client = InferenceClient(token=hf_token)
+                client = InferenceClient(api_key=hf_token)
 
                 # Dynamic Prompt Builder based on selected focus area
                 if focus_area == "Time Complexity":
